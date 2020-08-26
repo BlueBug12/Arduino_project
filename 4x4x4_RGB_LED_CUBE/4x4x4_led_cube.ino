@@ -21,13 +21,14 @@ int BAM_Bit, BAM_Counter = 0; // Bit Angle Modulation variables to keep track of
 unsigned int data[4][4][4];
 unsigned long start;//for a millis timer to cycle through the animations
 
+volatile boolean jump=false;
 
 void setup() {
   Serial.begin(9600);
   SPI.setBitOrder(MSBFIRST);//Most Significant Bit First
   SPI.setDataMode(SPI_MODE0);// Mode 0 Rising edge of data, keep clock low
   SPI.setClockDivider(SPI_CLOCK_DIV2);//Run the data in at 16MHz/2 - 8MHz
-
+  attachInterrupt(digitalPinToInterrupt(3), next, FALLING);
   noInterrupts();// kill interrupts until everybody is set up
 
   //Timer 1 to refresh the cube
@@ -52,19 +53,18 @@ void setup() {
 }
 
 void loop() {
+  //game();
+  //breathing(200);
+  //randomLeds();
+  //jump=false;
   game();
-  breathing(200);
-  /*
-  movePlane();
-  moveSingle();
-  moveSqure();
-  moveOnePixel();
-  allLeds();
-  planeSwipe();
-  randomLeds();
-*/
 
 }
+
+void next(){
+    jump=true;
+}
+
 void refresh(){
   for(int i=0;i<4;++i){
     for(int j=0;j<4;++j){
@@ -85,7 +85,7 @@ bool game_over(int x, int y, int z, int player){
     //x axis
     for(int i=x+1;i<x+5;++i){
       if(data[i%4][y][z]==player)
-        ++counter;  
+        ++counter;
     }
     if(counter==4){
       if(player==1){
@@ -98,7 +98,7 @@ bool game_over(int x, int y, int z, int player){
           delay(300);
         }
       }
-        
+
       if(player==2){
         for(int a=0;a<4;++a){
           for(int i=x+1;i<x+5;++i)
@@ -111,13 +111,13 @@ bool game_over(int x, int y, int z, int player){
       }
       return true;
     }
-      
+
     counter=0;
-    
+
     //y axis
     for(int i=y+1;i<y+5;++i){
       if(data[x][i%4][z]==player)
-        ++counter;  
+        ++counter;
     }
     if(counter==4){
       if(player==1){
@@ -130,7 +130,7 @@ bool game_over(int x, int y, int z, int player){
           delay(300);
         }
       }
-        
+
       if(player==2){
         for(int a=0;a<4;++a){
           for(int i=y+1;i<y+5;++i)
@@ -140,16 +140,16 @@ bool game_over(int x, int y, int z, int player){
             LED(z,x,i%4,0,0,15);
           delay(300);
         }
-      }  
+      }
       return true;
     }
-      
+
     counter=0;
 
     //z axis
     for(int i=z+1;i<z+5;++i){
       if(data[x][y][i%4]==player)
-        ++counter;  
+        ++counter;
     }
     if(counter==4){
       if(player==1){
@@ -162,7 +162,7 @@ bool game_over(int x, int y, int z, int player){
           delay(300);
         }
       }
-        
+
       if(player==2){
         for(int a=0;a<4;++a){
           for(int i=z+1;i<z+5;++i)
@@ -172,19 +172,358 @@ bool game_over(int x, int y, int z, int player){
             LED(i%4,x,y,0,0,15);
           delay(300);
         }
-      }  
+      }
       return true;
     }
-      
-    //counter=0;
+
+    counter=0;
+    //xy axis
+    if(x==y){
+      for(int i=x+1;i<x+5;++i){
+        if(data[i%4][i%4][z]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(z,i%4,i%4,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(z,i%4,i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(z,i%4,i%4,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(z,i%4,i%4,0,0,15);
+            delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //xz axis
+    if(x==z){
+      for(int i=x+1;i<x+5;++i){
+        if(data[i%4][y][i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,y,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,y,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,y,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,y,0,0,15);
+            delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //yz axis
+    if(y==z){
+      for(int i=y+1;i<y+5;++i){
+        if(data[x][i%4][i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=y+1;i<y+5;++i)
+              LED(i%4,x,i%4,0,0,0);
+            delay(300);
+            for(int i=y+1;i<y+5;++i)
+              LED(i%4,x,i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+            for(int i=y+1;i<y+5;++i)
+              LED(i%4,x,i%4,0,0,0);
+            delay(300);
+            for(int i=y+1;i<y+5;++i)
+              LED(i%4,x,i%4,0,0,15);
+            delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //x+y=3 axis
+    if(x+y==3){
+      for(int i=x+1;i<x+5;++i){
+        if(data[i%4][3-i%4][z]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(z,i%4,3-i%4,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(z,i%4,3-i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+              for(int i=x+1;i<x+5;++i)
+                LED(z,i%4,3-i%4,0,0,0);
+              delay(300);
+              for(int i=x+1;i<x+5;++i)
+                LED(z,i%4,3-i%4,0,0,15);
+              delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //x+z=3 axis
+    if(x+z==3){
+      for(int i=x+1;i<x+5;++i){
+        if(data[i%4][y][3-i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(3-i%4,i%4,y,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(3-i%4,i%4,y,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+              for(int i=x+1;i<x+5;++i)
+                LED(3-i%4,i%4,y,0,0,0);
+              delay(300);
+              for(int i=x+1;i<x+5;++i)
+                LED(3-i%4,i%4,y,0,0,15);
+              delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //y+z=3 axis
+    if(y+z==3){
+      for(int i=y+1;i<y+5;++i){
+        if(data[x][i%4][3-i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=y+1;i<y+5;++i)
+              LED(3-i%4,x,i%4,0,0,0);
+            delay(300);
+            for(int i=y+1;i<y+5;++i)
+              LED(3-i%4,x,i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+              for(int i=y+1;i<y+5;++i)
+                LED(3-i%4,x,i%4,0,0,0);
+              delay(300);
+              for(int i=y+1;i<y+5;++i)
+                LED(3-i%4,x,i%4,0,0,15);
+              delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //xyz axis
+    if(x==y==z){
+      for(int i=x+1;i<x+5;++i){
+        if(data[i%4][i%4][i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,i%4,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+              for(int i=x+1;i<x+5;++i)
+                LED(i%4,i%4,i%4,0,0,0);
+              delay(300);
+              for(int i=x+1;i<x+5;++i)
+                LED(i%4,i%4,i%4,0,0,15);
+              delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //xy x+z=3 axis
+    if(x==y&&x+z==3){
+      for(int i=x+1;i<x+5;++i){
+        if(data[i%4][i%4][3-i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(3-i%4,i%4,i%4,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(3-i%4,i%4,i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+              for(int i=x+1;i<x+5;++i)
+                LED(3-i%4,i%4,i%4,0,0,0);
+              delay(300);
+              for(int i=x+1;i<x+5;++i)
+                LED(3-i%4,i%4,i%4,0,0,15);
+              delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //yz x+y=3 axis
+    if(y==z&&x+y==3){
+      for(int i=y+1;i<y+5;++i){
+        if(data[3-i%4][i%4][i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=y+1;i<y+5;++i)
+              LED(i%4,3-i%4,i%4,0,0,0);
+            delay(300);
+            for(int i=y+1;i<y+5;++i)
+              LED(i%4,3-i%4,i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+              for(int i=y+1;i<y+5;++i)
+                LED(i%4,3-i%4,i%4,0,0,0);
+              delay(300);
+              for(int i=y+1;i<y+5;++i)
+                LED(i%4,3-i%4,i%4,0,0,15);
+              delay(300);
+          }
+        }
+        return true;
+      }
+    }
+
+    counter=0;
+    //xz x+y=3 axis
+    if(x==z&&x+y==3){
+      for(int i=x+1;i<x+5;++i){
+        if(data[i%4][3-i%4][i%4]==player){
+          ++counter;
+        }
+      }
+      if(counter==4){
+        if(player==1){
+          for(int a=0;a<4;++a){
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,3-i%4,0,0,0);
+            delay(300);
+            for(int i=x+1;i<x+5;++i)
+              LED(i%4,i%4,3-i%4,15,0,0);
+            delay(300);
+          }
+        }
+
+        if(player==2){
+          for(int a=0;a<4;++a){
+              for(int i=x+1;i<x+5;++i)
+                LED(i%4,i%4,3-i%4,0,0,0);
+              delay(300);
+              for(int i=x+1;i<x+5;++i)
+                LED(i%4,i%4,3-i%4,0,0,15);
+              delay(300);
+          }
+        }
+        return true;
+      }
+    }
 
     return false;
-    
+
 }
 
 void game(){
-  
+
   unsigned long int start_time = millis();
+  unsigned long int pre_down_time = millis();
   bool down=false;
   bool turn=false;
   for(int i=0;i<4;++i){
@@ -197,44 +536,57 @@ void game(){
    int bx=1;
    int by=1;
    int bz=3;
-   
+
    while(1){
     int tmpx=bx;
     int tmpy=by;
 
     while(millis()-start_time<300){
       refresh();
+      int sx = analogRead(A1);
+      int sy = analogRead(A2);
+      int sz = analogRead(A3);
       //clean();
-      if(analogRead(A1)<=10){
+      /*
+      Serial.print("x: ");
+      Serial.print(analogRead(A1));
+      Serial.print('\n');
+      Serial.print("y: ");
+      Serial.print(analogRead(A2));
+      Serial.print('\n');*/
+      Serial.print("z: ");
+      Serial.print(sz);
+      Serial.print('\n');
+      //delay(10);
+      if(sx==0){
         tmpx=(bx==0)? 3:bx-1;
         while(data[tmpx][tmpy][3]){
           tmpx = (tmpx==0)?3:tmpx-1;
         }
-        
       }
-      if(analogRead(A1)>=1013){
+      else if(sx==1023){
         tmpx=(bx==3)?0:bx+1;
         while(data[tmpx][tmpy][3]){
           tmpx = (tmpx==3)?0:tmpx+1;
         }
-        
       }
-      if(analogRead(A2)<=10){
+      else if(sy==0){
         tmpy=(by==0)?3:by-1;
         while(data[tmpx][tmpy][3]){
           tmpy = (tmpy==0)?0:tmpy-1;
         }
-        
       }
-      if(analogRead(A2)>=1013){
+      else if(sy==1023){
         tmpy=(by==3)?0:by+1;
         while(data[tmpx][tmpy][3]){
           tmpy=(tmpy==3)?0:tmpy+1;
         }
-        
       }
-      if(analogRead(A3)==0){
+      else if(sz==0&&millis()-pre_down_time>300){
         down=true;
+        pre_down_time=millis();
+        while(millis()-start_time<300);
+        break;
       }
     }
     //bx=tmpx;
@@ -245,24 +597,24 @@ void game(){
       LED(3,tmpx,tmpy,15,0,0);
     else
       LED(3,tmpx,tmpy,0,0,15);
-    
+
     if(down){
       down=false;
       int index=2;
-      
+
       while(index>=0&&!data[tmpx][tmpy][index]){
         if(turn){
           LED(index,tmpx,tmpy,15,0,0);
-          LED(index+1,tmpx,tmpy,0,0,0); 
+          LED(index+1,tmpx,tmpy,0,0,0);
         }
         else{
           LED(index,tmpx,tmpy,0,0,15);
           LED(index+1,tmpx,tmpy,0,0,0);
         }
-        
+
         delay(50);
         --index;
-        
+
       }
       turn=!turn;
       data[tmpx][tmpy][index+1]=(int)turn+1;
@@ -274,25 +626,30 @@ void game(){
         if(!data[i/4][i%4][3]){
           bx=i/4;
           by=i%4;
-          break;  
+          break;
         }
       }
-      
+
     }
     else{
       bx = tmpx;
-      by = tmpy; 
+      by = tmpy;
     }
-    
-    while(millis()-start_time<300);
+
+    while(millis()-start_time<300){
+      if(analogRead(A3)==0&&millis()-pre_down_time>300){
+        down=true;
+        pre_down_time=millis();
+      }
+    };
     start_time=millis();
-    
-    
+
+
    }
-   
-    
-    
-    
+
+
+
+
 }
 
 void breathing(int d_time){
@@ -302,7 +659,7 @@ void breathing(int d_time){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
           LED(i,j,k,0,0,b);
-        }  
+        }
       }
     }
     delay(d_time);
@@ -313,7 +670,7 @@ void breathing(int d_time){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
           LED(i,j,k,b,0,15);
-        }  
+        }
       }
     }
     delay(d_time);
@@ -324,7 +681,7 @@ void breathing(int d_time){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
           LED(i,j,k,15,0,b);
-        }  
+        }
       }
     }
     delay(d_time);
@@ -335,7 +692,7 @@ void breathing(int d_time){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
           LED(i,j,k,15,b,0);
-        }  
+        }
       }
     }
     delay(d_time);
@@ -346,7 +703,7 @@ void breathing(int d_time){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
           LED(i,j,k,b,15,0);
-        }  
+        }
       }
     }
     delay(d_time);
@@ -357,7 +714,7 @@ void breathing(int d_time){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
           LED(i,j,k,0,15,b);
-        }  
+        }
       }
     }
     delay(d_time);
@@ -368,7 +725,7 @@ void breathing(int d_time){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
           LED(i,j,k,b,15,15);
-        }  
+        }
       }
     }
     delay(d_time);
@@ -379,7 +736,7 @@ void randomLeds() {
   int x, y, z, red, green, blue;
   start = millis();
 
-  while (millis() - start < 5000) {
+  while (millis() - start < 10000000&&!jump) {
     x = random(4);
     y = random(4);
     z = random(4);
@@ -388,336 +745,9 @@ void randomLeds() {
     blue = random(16);
     LED(x, y, z, red, green, blue);
 
-    delay(20);
+    delay(200);
   }
   clean();
-}
-void planeSwipe() {
-  for (int i = 0; i < 3; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= (3 - i)) {
-        for (int k = 0; k < 4; k++)
-          LED(k, j, child, 0, 15, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(k, j, child, 0, 15, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 4; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= i) {
-        for (int k = 0; k < 4; k++)
-          LED(k, child, j , 0, 15, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(k, child, j, 0, 15, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 3; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= (3 - i)) {
-        for (int k = 0; k < 4; k++)
-          LED(k, child, j, 0, 15, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(k, child, j, 0, 15, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 4; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= i) {
-        for (int k = 0; k < 4; k++)
-          LED(k, j, child , 0, 15, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(k, j, child, 0, 15, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  ///////////////
-  for (int i = 0; i < 3; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= (3 - i)) {
-        for (int k = 0; k < 4; k++)
-          LED(j, child, k,  0, 0, 15);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(j, child, k,   0, 0, 15);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 4; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= i) {
-        for (int k = 0; k < 4; k++)
-          LED(child, j , k,  0, 0, 15);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(child, j, k , 0, 0, 15);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 3; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= (3 - i)) {
-        for (int k = 0; k < 4; k++)
-          LED(child, j, k,   0, 0, 15);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED( child, j, k,  0, 0, 15);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 4; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= i) {
-        for (int k = 0; k < 4; k++)
-          LED(j, child , k,  0, 0, 15);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(j, child, k, 0, 0, 15);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  //////////////////////
-  for (int i = 0; i < 3; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= (3 - i)) {
-        for (int k = 0; k < 4; k++)
-          LED(j, k, child,  15, 0, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(j, k, child,   15, 0, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 4; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= i) {
-        for (int k = 0; k < 4; k++)
-          LED(child, k, j ,  15, 0, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED(child, k , j, 15, 0, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 3; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= (3 - i)) {
-        for (int k = 0; k < 4; k++)
-          LED( child, k, j,  15, 0, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED( child, k, j,  15, 0, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-  for (int i = 0; i < 4; i++) {
-    int child = 0;
-    for (int j = 0; j < 4; j++) {
-      if (j >= i) {
-        for (int k = 0; k < 4; k++)
-          LED(j , k, child,  15, 0, 0);
-        child++;
-      } else {
-        for (int k = 0; k < 4; k++)
-          LED( j, k, child, 15, 0, 0);
-      }
-    }
-    delay(100);
-    clean();
-  }
-}
-void movePlane() {
-  start = millis();
-
-  while (millis() - start < 5000) {
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, 15, 0, 0);
-          LED(j, i, k, 0, 10, 0);
-          LED(j, k, i, 0, 0, 10);
-        }
-
-      delay(100);
-      clean();
-    }
-  }
-}
-void moveSingle() {
-  start = millis();
-
-  while (millis() - start < 5000) {
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, 15, 0, 15);
-          LED(j, i, k, 15, 0, 15);
-          LED(i, k, j, 0, 15, 15);
-          delay(50);
-          clean();
-        }
-  }
-}
-void moveOnePixel() {
-  start = millis();
-  int layer, column, row, red, green, blue;
-  while (millis() - start < 5000) {
-    layer = random(4);
-    column = random(4);
-    row = random(4);
-    red = random(16);
-    green = random(16);
-    blue = random(16);
-    LED(layer, column, row, red, green, blue);
-    LED(column, layer, row, red, green, blue);
-    LED(row , layer, column ,  red, green, blue);
-    delay(50);
-    clean();
-  }
-}
-void moveSqure() {
-  start = millis();
-
-  while (millis() - start < 5000) {
-    int red = random(15);
-    int green = random(15);
-    int blue = random(15);
-    LED(1, 1, 1, red, green, blue);
-    LED(1, 1, 2, red, green, blue);
-    LED(1, 2, 1,  red, green, blue);
-    LED(1, 2, 2,  red, green, blue);
-    LED(2, 1, 1,  red, green, blue);
-    LED(2, 1, 2,  red, green, blue);
-    LED(2, 2, 1,  red, green, blue);
-    LED(2, 2, 2,  red, green, blue);
-    delay(200);
-    clean();
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        LED(i, j, 0,  red, green, blue);
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        LED(i, 0, j,  red, green, blue);
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        LED(0, i, j,  red, green, blue);
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        LED(i, j, 3, red, green, blue);
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        LED(i, 3, j, red, green, blue);
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        LED(3, i, j, red, green, blue);
-
-    delay(200);
-    clean();
-  }
-}
-void allLeds() {
-  for (int brightness = 0; brightness < 16; brightness++) {
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, brightness, 0, 0);
-        }
-    delay(30);
-  }
-  delay(300);
-  for (int brightness = 15; brightness >= 0; brightness--) {
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, brightness, 0, 0);
-        }
-    delay(30);
-  }
-  for (int brightness = 0; brightness < 16; brightness++) {
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, 0, brightness, 0);
-        }
-    delay(30);
-  }
-  delay(300);
-  for (int brightness = 15; brightness >= 0; brightness--) {
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, 0, brightness, 0);
-        }
-    delay(30);
-  }
-  for (int brightness = 0; brightness < 16; brightness++) {
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, 0, 0, brightness);
-        }
-    delay(30);
-  }
-  delay(300);
-  for (int brightness = 15; brightness >= 0; brightness--) {
-    for (int i = 0; i < 4; i++)
-      for (int j = 0; j < 4; j++)
-        for (int k = 0; k < 4; k++) {
-          LED(i, j, k, 0, 0, brightness);
-        }
-    delay(30);
-  }
-
 }
 void LED(int level, int row, int column, byte red, byte green, byte blue) { //****LED Routine****LED Routine****LED Routine****LED Routine
 
@@ -745,9 +775,9 @@ void LED(int level, int row, int column, byte red, byte green, byte blue) { //**
 
 }
 
-ISR(TIMER1_COMPA_vect) { 
+ISR(TIMER1_COMPA_vect) {
 
-  PORTD |= 1 << blank_pin; 
+  PORTD |= 1 << blank_pin;
   if (BAM_Counter == 8)
     BAM_Bit++;
   else if (BAM_Counter == 24)
@@ -757,7 +787,7 @@ ISR(TIMER1_COMPA_vect) {
 
   BAM_Counter++;
 
-  switch (BAM_Bit) { 
+  switch (BAM_Bit) {
     case 0:
       for (shift_out = level; shift_out < level + 2; shift_out++)
         SPI.transfer(red0[shift_out]);
@@ -789,7 +819,7 @@ ISR(TIMER1_COMPA_vect) {
         SPI.transfer(green3[shift_out]);
       for (shift_out = level; shift_out < level + 2; shift_out++)
         SPI.transfer(blue3[shift_out]);
-     
+
       if (BAM_Counter == 120) {
         BAM_Counter = 0;
         BAM_Bit = 0;
@@ -804,11 +834,11 @@ ISR(TIMER1_COMPA_vect) {
   PORTD &= ~(1 << blank_pin); //Blank pin LOW to turn on the LEDs with the new data
 
   anodelevel++;
-  level = level + 2; 
+  level = level + 2;
 
-  if (anodelevel == 4) 
+  if (anodelevel == 4)
     anodelevel = 0;
-  if (level == 8) 
+  if (level == 8)
     level = 0;
   pinMode(blank_pin, OUTPUT);
 }
