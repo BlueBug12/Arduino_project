@@ -1,5 +1,6 @@
 #include <SPI.h>
 #define latch_pin 2
+#define interrupt_pin 3
 #define blank_pin 4
 #define data_pin 11// used by SPI, must be pin 11
 #define clock_pin 13// used by SPI, must be 13
@@ -28,7 +29,7 @@ void setup() {
   SPI.setBitOrder(MSBFIRST);//Most Significant Bit First
   SPI.setDataMode(SPI_MODE0);// Mode 0 Rising edge of data, keep clock low
   SPI.setClockDivider(SPI_CLOCK_DIV2);//Run the data in at 16MHz/2 - 8MHz
-  attachInterrupt(digitalPinToInterrupt(3), next, FALLING);
+  
   noInterrupts();// kill interrupts until everybody is set up
 
   //Timer 1 to refresh the cube
@@ -48,16 +49,20 @@ void setup() {
   pinMode(clock_pin, OUTPUT);//SPI Clock
   pinMode(blank_pin, OUTPUT);//Output Enable  important to do this last, so LEDs do not flash on boot up
   SPI.begin();//start up the SPI library
+  attachInterrupt(digitalPinToInterrupt(interrupt_pin), next, RISING);
   interrupts();//let the show begin, this lets the multiplexing start
-
 }
 
 void loop() {
   //game();
-  //breathing(200);
-  //randomLeds();
+  test('r',100);
+  test('g',100);
+  test('b',100);
+  breathing(200);
+  randomLeds(100000);
+  moveSingle(100000);
   //jump=false;
-  game();
+  //game();
 
 }
 
@@ -79,6 +84,7 @@ void refresh(){
     }
    }
 }
+
 
 bool game_over(int x, int y, int z, int player){
     int counter=0;
@@ -546,14 +552,7 @@ void game(){
       int sx = analogRead(A1);
       int sy = analogRead(A2);
       int sz = analogRead(A3);
-      //clean();
-      /*
-      Serial.print("x: ");
-      Serial.print(analogRead(A1));
-      Serial.print('\n');
-      Serial.print("y: ");
-      Serial.print(analogRead(A2));
-      Serial.print('\n');*/
+
       Serial.print("z: ");
       Serial.print(sz);
       Serial.print('\n');
@@ -658,6 +657,11 @@ void breathing(int d_time){
     for(int i=0;i<4;++i){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
+          if(jump){
+            jump=false;
+            clean();  
+            return ;
+          }
           LED(i,j,k,0,0,b);
         }
       }
@@ -669,6 +673,11 @@ void breathing(int d_time){
     for(int i=0;i<4;++i){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
+          if(jump){
+            jump=false;
+            clean();
+            return;  
+          }
           LED(i,j,k,b,0,15);
         }
       }
@@ -680,6 +689,11 @@ void breathing(int d_time){
     for(int i=0;i<4;++i){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
+          if(jump){
+            jump=false;
+            clean(); 
+            return; 
+          }
           LED(i,j,k,15,0,b);
         }
       }
@@ -691,6 +705,11 @@ void breathing(int d_time){
     for(int i=0;i<4;++i){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
+          if(jump){
+            jump=false;
+            clean();  
+            return;
+          }
           LED(i,j,k,15,b,0);
         }
       }
@@ -702,6 +721,11 @@ void breathing(int d_time){
     for(int i=0;i<4;++i){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
+          if(jump){
+            jump=false;
+            clean();  
+            return;
+          }
           LED(i,j,k,b,15,0);
         }
       }
@@ -713,6 +737,11 @@ void breathing(int d_time){
     for(int i=0;i<4;++i){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
+          if(jump){
+            jump=false;
+            clean();  
+            return;
+          }
           LED(i,j,k,0,15,b);
         }
       }
@@ -724,6 +753,11 @@ void breathing(int d_time){
     for(int i=0;i<4;++i){
       for(int j=0;j<4;++j){
         for(int k=0;k<4;++k){
+          if(jump){
+            jump=false;
+            clean();  
+            return;
+          }
           LED(i,j,k,b,15,15);
         }
       }
@@ -732,11 +766,11 @@ void breathing(int d_time){
   }
   clean();
  }
-void randomLeds() {
+void randomLeds(long long int _time) {
   int x, y, z, red, green, blue;
   start = millis();
 
-  while (millis() - start < 10000000&&!jump) {
+  while (millis() - start < _time&&!jump) {
     x = random(4);
     y = random(4);
     z = random(4);
@@ -745,8 +779,9 @@ void randomLeds() {
     blue = random(16);
     LED(x, y, z, red, green, blue);
 
-    delay(200);
+    //delay(200);
   }
+  jump=false;
   clean();
 }
 void LED(int level, int row, int column, byte red, byte green, byte blue) { //****LED Routine****LED Routine****LED Routine****LED Routine
@@ -851,5 +886,45 @@ void clean() {
     for (jj = 0; jj < 4; jj++)
       for (kk = 0; kk < 4; kk++)
         LED(ii, jj, kk, 0, 0, 0);
+}
+void test(char color,int _time) {
+  int ii, jj, kk;
+  for (ii = 0; ii < 4; ii++)
+    for (jj = 0; jj < 4; jj++)
+      for (kk = 0; kk < 4; kk++){
+        if(jump){
+            jump=false;
+            clean();
+            return;  
+          }
+        if(color=='b')
+          LED(ii, jj, kk, 15, 0, 0);
+        else if(color=='g')
+          LED(ii, jj, kk, 0, 15, 0);
+        else
+          LED(ii, jj, kk, 0, 0, 15);
+        delay(_time);
+        }
+   clean();
+}
+void moveSingle(long long int _time) {
+  start = millis();
 
+  while (millis() - start < _time) {
+    for (int i = 0; i < 4; i++)
+      for (int j = 0; j < 4; j++)
+        for (int k = 0; k < 4; k++) {
+          
+          LED(i, j, k, 15, 0, 15);
+          LED(j, i, k, 15, 0, 15);
+          LED(i, k, j, 0, 15, 15);
+          delay(50);
+          clean();
+          if(jump){
+            jump=false;
+            return;  
+          }
+        }
+  }
+  clean();
 }
