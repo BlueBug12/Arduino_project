@@ -6,7 +6,7 @@
 
 ![gif](./img/breath.gif)
 
-以Arduino版作為控制器，並使用IDE內建的 _SPI(Serial Peripheral Interface)_ library搭配數個 _595 IC_ 來達到以有限的硬體同時控制多個pin腳(x52)的需求，也就是所謂"串入並出(_series in parallel out_)"。並可以透過更改軟體，重新寫入Arduino版，將整個LED立方的閃爍模式改變。
+> 以Arduino版作為控制器，並使用IDE內建的 _SPI(Serial Peripheral Interface)_ library搭配數個 _595 IC_ 來達到以有限的硬體同時控制多個pin腳(x52)的需求，也就是所謂"串入並出(_series in parallel out_)"。並可以透過更改軟體，重新寫入Arduino版，將整個LED立方的閃爍模式改變。
 
 ## 材料
 * Arduino Nano or Uno
