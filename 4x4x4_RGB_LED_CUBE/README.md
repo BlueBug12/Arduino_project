@@ -28,7 +28,7 @@
 * 電線(絞線為佳)及杜邦線數條(測試用)
 * 紙箱及厚紙板
 
-##　流程
+## 流程
 #### 步驟一: LED骨架
 第一步，先進行LED及銅線骨架的焊接。這是攸關成品外觀美醜的一步，需要相當的耐心及細心。首先需要將所有LED先過電測試一遍，確認RGB三色都能正常運作，記得加上電阻避免負載過大將LED燒毀。
 
@@ -71,7 +71,7 @@
 
 看起來很複雜，但其實就是7組一樣的電路串接在一起而已。
 
-基本上就是按[電路圖](https://github.com/anoopmm/RGB_LED_CUBE/blob/master/rgbled.PDF)施工，**注意整個電路的長寬將裁減後必須小於之後要安裝在裡面的盒子**，所以就儘量不要浪費空間囉。另外，我也建議各位在洞洞板上使用可以自由插拔的排線，不然像我一樣直接焊死在上面最後與LED立方焊接的時候會非常麻煩。還有電線要記得預留長度，免得之後太短焊不上就尷尬了。
+基本上就是按[電路圖](https://github.com/anoopmm/RGB_LED_CUBE/blob/master/rgbled.PDF)施工，**注意整個洞洞板的長寬將裁減後必須小於之後要安裝在裡面的盒子**，所以就儘量不要浪費空間囉。另外，我也建議各位在洞洞板上使用可以自由插拔的排線，不然像我一樣直接焊死在上面最後與LED立方焊接的時候會非常麻煩。還有電線要記得預留長度，免得之後太短焊不上就尷尬了。
 
 我的元件擺放位置及佈線供大家參考。
 
@@ -84,7 +84,7 @@
 
 至於Arduino的板子要用哪一種，其實常見的`Uno`、`Nano`、`Leonardo`或是更高階的其他板子應該都可以。以這個專案來說，硬體的需求不太高，只需要支援`SPI`並有外部插斷功能的就可以了。我自己是選擇`Nano`，除了價格便宜，大小也比較不占空間，而且有排針可以直接固定在洞洞板上非常方便。
 
-順帶一提，除了原本的電路以外，因為覺得沒有任何機械式的按鈕很怪，我有額外追加開關，電源顯示跟跳脫按鈕的功能。只要一插上電源，平頭按鈕裡的LED就會亮起代表供電正常。接著只要將開關切到`on`，整個LED立方就會開始運作。至於按鈕則是可以根據使用需求調整功能，我特意將他連接到支援**外部中斷**(_external interrupt_)的pin腳(可以參考[Arduino 官網](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)的說明)，並設計一個下拉(_pull down_)電阻外加去彈跳(_debounce_)電容，完成一個簡單的[RC電路](https://reference.digilentinc.com/learn/microprocessor/tutorials/debouncing-via-rc-filter/start)，方便我們以硬體的方式快速切換LED的模式。相關電路圖如下:
+順帶一提，除了原本的電路以外，因為覺得沒有任何機械式的按鈕有點彆扭，我後來決定額外追加開關、電源顯示跟跳脫按鈕的功能。只要一插上電源，平頭按鈕裡的LED就會亮起代表供電正常。接著只要將開關切到`on`，整個LED立方就會開始運作。至於按鈕則是可以根據使用需求調整功能，我特意將他連接到支援**外部中斷**(_external interrupt_)的pin腳(可以參考[Arduino 官網](https://www.arduino.cc/reference/en/language/functions/external-interrupts/attachinterrupt/)的說明)，並設計一個下拉(_pull down_)電阻外加去彈跳(_debounce_)電容，完成一個簡單的[RC電路](https://reference.digilentinc.com/learn/microprocessor/tutorials/debouncing-via-rc-filter/start)，方便我們以硬體的方式快速切換LED的模式。相關電路圖如下:
 ![circuit](./img/circuit2.JPG)
 
 差點忘了，因為我希望接上電源時Arduino版不會立刻啟動，而是要透過開關過電後再運作。所以我會另外拿一條USB線，保留type-A那端，把另外一頭剪下並撥線。因為不用傳輸資料，只拿紅黑兩股線就好(接上手機變壓器就有5V的電源)，黑線連到Arduino的`GND`，紅線則接上搖頭開關的共接點。開關ON的那一側再接上`Arduino 5V`的腳位。注意電路圖中的`5V`和`Arduino 5V`這兩個腳位並不是完全相通，中間還有經過搖頭開關的控制。其實之前好像有看到網路上有文章說最好把供電接到Arduino `Vin` 這個腳位而不是 `5V`。雖然都能運作，但`Vin`這個腳位有做穩壓保護會比較安全一些。但我已經做完整個作品才知道這件事，就懶得改了XD，還沒做的各位記得改一下啊。
